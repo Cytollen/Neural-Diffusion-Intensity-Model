@@ -1,0 +1,17 @@
+# Hardware profile for an 8 GB laptop (--profile laptop): device and evaluation sizes.
+train:
+  device: cpu
+  eval_paths: 16
+  num_threads: 8
+model:
+  posterior:
+    phi_hidden: [32, 32]
+    phi_out: 16
+    rho_hidden: [64, 64]
+    checkpoint_phi: true
+eval:
+  n_paths_posterior: 32
+  wasserstein_n_obs: 8
+  wasserstein_n_paths: 32
+  l2_n_paths: 128
+  mcmc: {n_chains: 32, n_steps: 3000}

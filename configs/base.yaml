@@ -1,0 +1,102 @@
+# Settings shared by all configs: the paper's CIR data (Sec. 4.1), the default model (latent state X = log Z),
+# training and evaluation.
+name: base
+output_root: outputs
+notes: "dZ = 0.3(80 - Z) dt + sqrt(Z) dB, Z0 = 5, T = 4, 100 Euler steps, n = 256 train / 128 test"
+
+data:
+  T: 4.0
+  n_steps: 100
+  n_train: 256
+  n_test: 128
+  seed: 0
+  sim_substeps: 1
+  cache_dir: data
+  truth: {kappa: 0.3, theta: 80.0, eta: 1.0, z0: 5.0}
+
+model:
+  state_space: real
+  link: exponential
+  # typical intensity of the data (events per unit time); the networks scale their state input with it
+  intensity_scale: 80.0
+  drift:
+    kind: mlp
+    hidden: [64, 64]
+    activation: silu
+    time_input: true
+    drift_scale: 1.0
+    init_output_std: 0.01
+  # CIR diffusion eta * sqrt(Z) of the intensity (paper Sec. 4.1): eta * exp(-X/2) for X = log Z, capped at
+  # max_step_std / sqrt(dt) (max_step_std: 1 by default, null: no cap)
+  diffusion: {kind: cir, eta_init: 1.0, trainable: false}
+  posterior:
+    kind: deepset
+    rho_hidden: [64, 64]     # deepset: rho
+    phi_hidden: [32, 32]     # deepset: phi
+    phi_out: 16
+    count_hidden: [32, 16]   # remaining_count: 4 -> 32 -> 16 -> 1
+    activation: silu
+    count_scale: 100.0       # typical number of events of an observation
+    score_scale: 1.0
+    jump_term: none          # none | raw (paper Sec. 3.3.1) | baseline_removed
+    jump_z_floor: 1.0
+    phi_uses_state: true     # paper Sec. 3.3.1; false pools the events once per observation: faster, less accurate
+    future_gate_width: 0.0
+    gap_feature: true
+    gap_scale: null          # time unit of the gap feature; null = T / count_scale
+    checkpoint_phi: true
+  positivity: full_truncation
+  # start of the model: a fixed initial intensity z0 (synthetic data), or a burn-in from the latent state x_start at
+  # t = -burn_in, through which the distribution of the initial intensity is learned (observations from a file)
+  z0: auto                  # auto | truth | estimate | a number
+  burn_in: auto             # auto | a length in time units
+  burn_in_frac: 0.25
+  x_start: auto             # auto: the log of the event rate of the data at the start of the window | a number
+
+likelihood: {eps: 1.0e-6}
+
+optim:
+  lr_prior: 5.0e-3
+  lr_posterior: 5.0e-3
+  lr_diffusion: 1.0e-2
+  clip_prior: 10.0
+  clip_posterior: 10.0
+  clip_diffusion: 10.0
+  # cosine | exponential | plateau | none; cosine and exponential end at lr_min_factor (0.1) of the initial rates
+  lr_schedule: cosine
+
+train:
+  epochs: 100
+  batch_size: 16
+  m_paths: 8                # Brownian paths per observation
+  # fractions of T; every mini-batch is trained at each of them in turn (the full horizon twice)
+  horizons: [1.0, 1.0, 0.75, 0.5, 0.25]
+  grad_mode: backprop       # backprop | sensitivity (same pathwise ELBO gradient, paper Eq. 12-13)
+  kl_weight: 0.5
+  kl_warmup_epochs: 0
+  eval_every: 5
+  eval_paths: 32
+  eval_horizon_fracs: [1.0]
+  plot_every: 5
+  checkpoint_every: 5
+  early_stopping_patience: 0
+  # bound on the posterior control u = sigma * s (null: none); a fitted posterior stays far below it
+  max_abs_control: 30.0
+  seed: 1
+  device: cpu
+
+eval:
+  # reference posterior of the comparison figures: analytic (exact CIR posterior, known Z_0) | mcmc | none
+  posterior_reference: analytic
+  n_generated: 128
+  n_initial: 4000           # draws of the learned prior for the figures of its distribution
+  n_particles: 2000         # particles of the filter for the marginal log-likelihood (observations from a file)
+  n_paths_posterior: 64
+  partial_horizon_frac: 0.5
+  wasserstein_n_obs: 16
+  wasserstein_n_paths: 64
+  l2_n_paths: 256
+  drift_z_max: 160.0
+  drift_3d_z_max: 100.0     # z range of drift_3d.html
+  # MCMC reference: pcn (preconditioned Crank-Nicolson, adaptive step) | independence (the paper's sampler)
+  mcmc: {kind: pcn, n_chains: 64, n_steps: 5000, burn_in_frac: 0.5, beta_init: 0.2, target_accept: 0.25, adapt: true, seed: 123}

@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ndim"
+version = "0.1.0"
+description = "Neural Diffusion Intensity Models for point-process data (UAI 2026) - PyTorch implementation"
+requires-python = ">=3.9"
+dependencies = ["torch>=2.1", "numpy>=1.24", "scipy>=1.10", "matplotlib>=3.7", "pyyaml>=6.0"]
+
+[project.optional-dependencies]
+plots3d = ["plotly>=5.0"]
+test = ["pytest>=7.0"]
+
+[tool.setuptools.packages.find]
+include = ["ndim*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q -p no:cacheprovider"

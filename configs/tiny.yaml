@@ -1,0 +1,20 @@
+# Tiny sizes for the tests and the --smoke pass of the experiment wrappers (--profile tiny).
+data: {n_train: 16, n_test: 8, n_steps: 25}
+model:
+  drift: {hidden: [8]}
+  posterior: {rho_hidden: [16], phi_hidden: [8], phi_out: 4}
+train:
+  epochs: 2
+  batch_size: 8
+  m_paths: 2
+  eval_every: 1
+  eval_paths: 2
+  plot_every: 1
+  checkpoint_every: 1
+eval:
+  n_generated: 8
+  n_paths_posterior: 4
+  wasserstein_n_obs: 2
+  wasserstein_n_paths: 4
+  l2_n_paths: 8
+  mcmc: {n_chains: 4, n_steps: 20}

@@ -1,0 +1,7 @@
+torch>=2.1
+numpy>=1.24
+scipy>=1.10
+matplotlib>=3.7
+pyyaml>=6.0
+plotly>=5.0   # optional, only for the 3-D drift html
+pytest>=7.0   # tests

@@ -1,0 +1,8 @@
+# Example 1 (experiments/intensity_cir_mlp.py; paper Sec. 4.1-4.3, Fig. 2-4): MLP drift b_theta(z, t).
+extends: common.yaml
+name: intensity_cir_mlp
+notes: "Intensity parametrization (state = intensity). Truth dZ = 0.3(80 - Z) dt + sqrt(Z) dB; MLP drift b(z, t); known diffusion sqrt(Z)."
+model:
+  drift: {kind: mlp, hidden: [64, 64], time_input: true}
+train:
+  epochs: 100

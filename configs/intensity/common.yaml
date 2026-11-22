@@ -1,0 +1,11 @@
+# Intensity parametrization (the model as the paper writes it): the state of the SDE is the intensity itself,
+# dZ = b_theta(Z, t) dt + sqrt(Z) dB.
+extends: ../base.yaml
+model:
+  state_space: intensity
+  drift: {drift_scale: 10.0}                                 # the drift of an intensity is of order tens
+  diffusion: {kind: cir, eta_init: 1.0, trainable: false}    # known diffusion sqrt(Z), not trained
+train:
+  max_abs_control: null             # no bound on the posterior control
+eval:
+  posterior_reference: analytic     # the exact CIR posterior

@@ -1,0 +1,3 @@
+# The test suite's config: the default model with the sizes of tiny.yaml.
+extends: [base.yaml, tiny.yaml]
+name: smoke

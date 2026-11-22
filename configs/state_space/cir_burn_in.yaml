@@ -1,0 +1,21 @@
+# Example 2 (experiments/state_space_cir_burn_in.py): an unknown initial intensity, learned through a burn-in.
+# Truth: Z_0 normal(40, 10) truncated to [5, 75], then dZ = 0.3(80 - Z) dt + sqrt(Z) dB on [0, T].
+# Model: X = log Z, started at X = 0 (intensity 1) at t = -1; MLP drift b(x, t), known diffusion sqrt(Z).
+extends: ../base.yaml
+name: state_space_cir_burn_in
+notes: "Burn-in on [-1, 0) from X = 0. Truth: Z_0 ~ N(40, 10^2) truncated to [5, 75], then dZ = 0.3(80 - Z) dt + sqrt(Z) dB. Latent state X = log Z, MLP drift b(x, t), known diffusion sqrt(Z), i.e. exp(-X/2) for X."
+data:
+  truth: {kappa: 0.3, theta: 80.0, eta: 1.0, z0: 40.0, z0_std: 10.0, z0_low: 5.0, z0_high: 75.0}
+model:
+  state_space: real
+  link: exponential
+  burn_in: 1.0                      # the diffusion starts at t = -1
+  x_start: 0.0                      # intensity 1
+  drift: {kind: mlp, hidden: [64, 64], time_input: true}      # the same network on the burn-in and on the window
+  diffusion: {kind: cir, eta_init: 1.0, trainable: false}     # known, not trained
+  posterior: {count_scale: 225.0}   # about 225 events per observation
+train:
+  epochs: 150
+eval:
+  # Z_0 is random: the reference is MCMC under the true prior
+  posterior_reference: mcmc

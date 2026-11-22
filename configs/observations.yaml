@@ -1,0 +1,27 @@
+# The default model for observations read from a file (scripts/fit.py): latent state X = log Z, MLP drift,
+# CIR diffusion eta * sqrt(Z) with eta estimated from the training observations, and a burn-in of T/4.
+# scripts/fit.py fills in data.path, data.T, model.intensity_scale and model.posterior.count_scale.
+extends: base.yaml
+name: observations
+notes: "Observations read from a file; latent state X = log Z, MLP drift b(x, t), CIR diffusion with an estimated coefficient, burn-in of T/4 before the window."
+data:
+  source: file
+  path: null                # the file with the event times (.npz, .npy, .json, .csv, .txt)
+  test_fraction: 0.25       # share of the observations held out for testing when the file does not split them
+  seed: 0                   # seed of that split
+model:
+  state_space: real
+  link: exponential
+  drift: {kind: mlp, hidden: [64, 64], time_input: true}
+  # eta_init: auto estimates eta from the training observations (ndim/cir_eta.py); a number sets it.
+  # Other forms (scripts/fit.py --diffusion):
+  #   cir-learned   {kind: cir, eta_init: 0.1, trainable: true}
+  #   network       {kind: mlp, eta_init: 0.2, trainable: true, time_input: true}
+  #   unit          {kind: constant, eta_init: 1.0, trainable: false}
+  diffusion: {kind: cir, eta_init: auto, trainable: false}
+train:
+  # auto: when the untrained model has no finite loss, training starts at a smaller eta and raises it (ndim/warm_start.py)
+  warm_start: auto
+eval:
+  # without a truth the learned posterior is compared with MCMC under the learned prior
+  posterior_reference: mcmc

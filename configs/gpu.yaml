@@ -1,0 +1,16 @@
+# Hardware profile for an NVIDIA GPU (--profile gpu): device, evaluation sizes, a wider encoder.
+train:
+  device: cuda
+  eval_paths: 64
+model:
+  posterior:
+    phi_hidden: [64, 64]
+    phi_out: 32
+    rho_hidden: [128, 128]
+    checkpoint_phi: false
+eval:
+  n_paths_posterior: 128
+  wasserstein_n_obs: 32
+  wasserstein_n_paths: 128
+  l2_n_paths: 512
+  mcmc: {n_chains: 128, n_steps: 10000}
