@@ -7,3 +7,4 @@ data/*.png
 *.egg-info/
 .DS_Store
 data/citibike_raw/
+ISSUES.md

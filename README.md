@@ -79,12 +79,14 @@ Before training, the command prints an estimate of `eta` and its 95% interval. H
 | `--epochs 60` | training epochs (default 100) |
 | `--profile laptop` | smaller evaluation sizes for an 8 GB machine |
 
+**Observations with many events.** `scripts/fit.py` does not thin the data: it uses every event in the file. The memory that training needs grows with the number of events per observation, and the command only lowers the batch size (16, 8, 4, 2) to fit the memory of the machine. On an 8 GB machine that is enough for about 500 events in the largest observation at the default batch size and about 4,000 at the smallest; beyond that, the command prints a note and trains anyway. If your observations hold more events, thin them before the fit: keep every event independently with a fixed probability `p`. The thinned observations are again a Cox process, with the intensity multiplied by `p`. Experiments 3 and 4 below are thinned this way.
+
 ## Included experiments
 
 | | 1. CIR, intensity parametrization | 2. CIR, state-space parametrization | 3. U.S. bank call centre | 4. Citi Bike trips |
 |---|---|---|---|---|
 | what it shows | the model of the original paper, where a fixed, known initial intensity is assumed (Sec. 4.1) | unknown initial intensity distribution, learned through a burn-in | the default model on the call-centre arrivals of the paper (Sec. 4.4) | the default model on public data |
-| data | synthetic: `dZ = 0.3(80 - Z) dt + sqrt(Z) dB`, `Z_0 = 5`, on `[0, 4]` | synthetic: the same dynamics, `Z_0` normal with mean 40 and standard deviation 10, truncated to `[5, 75]` | calls at a U.S. bank, one observation per day | trip starts of Citi Bike in Jersey City, one observation per weekday (a script fetches the public files) |
+| data | synthetic: `dZ = 0.3(80 - Z) dt + sqrt(Z) dB`, `Z_0 = 5`, on `[0, 4]` | synthetic: the same dynamics, `Z_0` normal with mean 40 and standard deviation 10, truncated to `[5, 75]` | calls at a U.S. bank, one observation per day, thinned: every call is kept with probability 0.001 | trip starts of Citi Bike in Jersey City, one observation per weekday (a script fetches the public files), thinned: every trip is kept with probability 0.08 |
 | state of the SDE | the intensity `Z` (intensity parametrization) | `X = log Z` (state-space parametrization) | `X = log Z` | `X = log Z` |
 | where a path starts | at the known `Z_0 = 5` | at `X = 0` (intensity 1) at `t = -1`; nothing is observed before time 0 | at `t = -T/4`, from the event rate at the start of the window | at `t = -T/4`, from the event rate at the start of the window |
 | drift | MLP `b_theta(z, t)` | MLP `b_theta(x, t)` | MLP `b_theta(x, t)` | MLP `b_theta(x, t)` |
@@ -118,6 +120,8 @@ Experiment 3, the call-center data. The file comes from the SEE Lab at the Techn
 python3 scripts/prepare_usbank.py --csv /path/to/usbank_calls_byminute.csv
 ```
 
+A day has about 290,000 calls. The memory that training needs grows with the number of events of an observation, so to avoid memory problems this command also thins the calls: it keeps every call independently with probability 0.001, which leaves about 290 events per day. A thinned Cox process is again a Cox process, with its intensity multiplied by that probability. The model is fitted to the thinned observations:
+
 ```bash
 python3 scripts/fit.py data/usbank_friday.npz --eta 0.322
 ```
@@ -127,6 +131,8 @@ Experiment 4, the bike trips. The first command fetches ten monthly files (about
 ```bash
 python3 scripts/prepare_citibike.py --download
 ```
+
+For the same reason this command thins the trips: it keeps every trip independently with probability 0.08, which leaves about 285 of the 3,566 trips of an average day. The model is fitted to the thinned observations:
 
 ```bash
 python3 scripts/fit.py data/citibike_jc_weekdays.npz
