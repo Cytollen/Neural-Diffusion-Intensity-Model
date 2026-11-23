@@ -43,7 +43,7 @@ Results go to outputs/<name>/ in the folder the command is run in (--name; defau
 Examples
   python scripts/fit.py my_events.csv --T 24
   python scripts/fit.py my_events.csv --T 24 --dry-run
-  python scripts/fit.py data/citibike_jc_weekdays.npz --steps 240 --epochs 60 --eta 0.665 --set train.batch_size=8
+  python scripts/fit.py data/citibike_jc_weekdays.npz
   python scripts/fit.py my_events.json --T 10 --epochs 50 --profile laptop --diffusion network
 """
 from __future__ import annotations

@@ -17,12 +17,13 @@ number of trips of every day before thinning and the settings: a file for script
 
 The script also estimates the coefficient eta of the diffusion eta * sqrt(Z) of the intensity from ALL trips of the
 training days, where it is far better determined than from the thinned observations, and converts it to the thinned
-observations (factor sqrt(keep)): the value to pass to scripts/fit.py with --eta.
+observations (factor sqrt(keep)). scripts/fit.py makes its own estimate from the thinned observations; --eta passes
+this one instead.
 
 Examples
   python scripts/prepare_citibike.py --download
   python scripts/prepare_citibike.py --raw /path/to/the/zip/files
-  python scripts/fit.py data/citibike_jc_weekdays.npz --steps 240 --epochs 60 --eta 0.665 --set train.batch_size=8
+  python scripts/fit.py data/citibike_jc_weekdays.npz
 """
 from __future__ import annotations
 
@@ -177,7 +178,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     print(f"kept with probability {args.keep:g} (seed {args.seed}): {counts.mean():.1f} events per day on average (from {counts.min()} to "
           f"{counts.max()}), standard deviation {counts.std(ddof=1):.1f} (a Poisson process with this mean: {np.sqrt(counts.mean()):.1f})")
     print(f"wrote {out}")
+    fit_command = f"fit: python scripts/fit.py {out}"
     if args.no_eta or len(dates) < 4:
+        print(fit_command)
         return 0
 
     from ndim.cir_eta import estimate_cir_eta
@@ -192,7 +195,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     print(f"coefficient of the diffusion eta * sqrt(Z), from all trips of the {len(train_idx)} training days (time in hours): {estimate.summary()}")
     print(f"for the observations kept with probability {args.keep:g}: sqrt({args.keep:g}) x {estimate.eta:.4g} = {scale * estimate.eta:.3f} "
           f"(95% interval {scale * estimate.interval[0]:.3f} to {scale * estimate.interval[1]:.3f}); figure: {figure}")
-    print(f"fit: python scripts/fit.py {out} --steps 240 --epochs 60 --eta {scale * estimate.eta:.3f} --set train.batch_size=8")
+    print(f"scripts/fit.py makes its own estimate from the thinned observations; --eta {scale * estimate.eta:.3f} passes this one instead")
+    print(fit_command)
     return 0
 
 

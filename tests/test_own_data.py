@@ -374,6 +374,10 @@ def test_citibike_preparation(tmp_root: Path, capsys: pytest.CaptureFixture) -> 
                                   "--keep", "0.25", "--seed", "1"]) == 0
     printed = capsys.readouterr().out
     assert f"{len(dates)} weekdays from {dates[0]} to {dates[-1]}" in printed and "coefficient of the diffusion" in printed and "--eta" in printed
+    assert printed.rstrip().splitlines()[-1] == f"fit: python scripts/fit.py {out}"                        # the plain command: it estimates eta itself
+    assert prepare_citibike.main(["--raw", str(raw), "--years", "2025", "--out", str(out), "--keep", "0.25", "--seed", "1", "--no-eta"]) == 0
+    printed = capsys.readouterr().out
+    assert "coefficient of the diffusion" not in printed and printed.rstrip().splitlines()[-1] == f"fit: python scripts/fit.py {out}"
     assert sorted(p.name for p in raw.iterdir()) == sorted(prepare_citibike.file_names([2025]))
     content = read_event_file(out)
     assert content.T == 24.0 and _same(content.events, [e[np.isfinite(e)] for e in events])

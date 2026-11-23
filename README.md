@@ -88,7 +88,7 @@ Before training, the command prints an estimate of `eta` and its 95% interval. H
 | state of the SDE | the intensity `Z` (intensity parametrization) | `X = log Z` (state-space parametrization) | `X = log Z` | `X = log Z` |
 | where a path starts | at the known `Z_0 = 5` | at `X = 0` (intensity 1) at `t = -1`; nothing is observed before time 0 | at `t = -T/4`, from the event rate at the start of the window | at `t = -T/4`, from the event rate at the start of the window |
 | drift | MLP `b_theta(z, t)` | MLP `b_theta(x, t)` | MLP `b_theta(x, t)` | MLP `b_theta(x, t)` |
-| diffusion | `sqrt(Z)`, known | `sqrt(Z)`, known; for `X` it is `exp(-X/2)` | `eta sqrt(Z)` with `eta = 0.322`, estimated from the data and not trained | `eta sqrt(Z)` with `eta = 0.665`, estimated from the data and not trained |
+| diffusion | `sqrt(Z)`, known | `sqrt(Z)`, known; for `X` it is `exp(-X/2)` | `eta sqrt(Z)` with `eta = 0.322`, estimated from the data and not trained | `eta sqrt(Z)` with `eta = 0.675`, estimated from the data and not trained |
 | posterior compared with | the exact CIR posterior | MCMC (pCN) under the true prior | MCMC (pCN) under the learned prior | MCMC (pCN) under the learned prior |
 | run it with | `experiments/intensity_cir_mlp.py` | `experiments/state_space_cir_burn_in.py` | `scripts/prepare_usbank.py`, then `scripts/fit.py` | `scripts/prepare_citibike.py`, then `scripts/fit.py` |
 
@@ -129,7 +129,7 @@ python3 scripts/prepare_citibike.py --download
 ```
 
 ```bash
-python3 scripts/fit.py data/citibike_jc_weekdays.npz --steps 240 --epochs 60 --eta 0.665 --set train.batch_size=8
+python3 scripts/fit.py data/citibike_jc_weekdays.npz
 ```
 
 ### Expected results
@@ -152,7 +152,7 @@ The posterior given the test observation with the fewest events, against MCMC un
 
 ![experiment 2: learned posterior and MCMC](docs/figures/example2_posterior.png)
 
-**Experiment 4** (60 epochs; a bit over three hours). The learned prior with 158 training observations. The figures in order: the event rate over the day, the spread of the counts between days, paths of the learned prior, the learned drift and the diffusion, and the number of events per day. The gray part before time 0 shows the burn-in period.
+**Experiment 4** (100 epochs; about an hour and a half). The learned prior with 158 training observations. The figures in order: the event rate over the day, the spread of the counts between days, paths of the learned prior, the learned drift and the diffusion, and the number of events per day. The gray part before time 0 shows the burn-in period.
 
 ![experiment 4: the learned model against the training days](docs/figures/citibike_learned_model.png)
 
