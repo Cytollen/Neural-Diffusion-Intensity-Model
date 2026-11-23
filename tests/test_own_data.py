@@ -444,7 +444,8 @@ def test_usbank_preparation(tmp_root: Path, capsys: pytest.CaptureFixture) -> No
     assert prepare_usbank.main(["--csv", str(raw8), "--out", str(out8)]) == 0
     printed = capsys.readouterr().out
     assert "from all calls of the 6 training days" in printed and "sqrt(0.001) x" in printed
-    assert f"fit: python scripts/fit.py {out8} --steps 240 --epochs 60 --eta " in printed
+    command, fit_line = f"fit: python scripts/fit.py {out8} --eta ", printed.rstrip().splitlines()[-1]
+    assert fit_line.startswith(command) and float(fit_line[len(command):]) > 0.0                          # the estimate and nothing else: the default grid and training
     assert out8.with_name("usbank_test_8_days_eta.png").exists()
     assert prepare_usbank.main(["--csv", str(raw8), "--out", str(out8), "--no-eta"]) == 0
     assert "training days" not in capsys.readouterr().out

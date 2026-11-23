@@ -21,7 +21,7 @@ observations (factor sqrt(thinning)): the value to pass to scripts/fit.py with -
 
 Examples
   python scripts/prepare_usbank.py --csv /path/to/usbank_calls_byminute.csv
-  python scripts/fit.py data/usbank_friday.npz --steps 240 --epochs 60 --eta 0.322 --set train.batch_size=8
+  python scripts/fit.py data/usbank_friday.npz --eta 0.322
 """
 from __future__ import annotations
 
@@ -158,7 +158,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     print(f"coefficient of the diffusion eta * sqrt(Z), from all calls of the {len(train_idx)} training days (time in hours): {estimate.summary()}")
     print(f"for the observations kept with probability {args.thinning:g}: sqrt({args.thinning:g}) x {estimate.eta:.4g} = {scale * estimate.eta:.3f} "
           f"(95% interval {scale * estimate.interval[0]:.3f} to {scale * estimate.interval[1]:.3f}); figure: {figure}")
-    print(f"fit: python scripts/fit.py {out} --steps 240 --epochs 60 --eta {scale * estimate.eta:.3f} --set train.batch_size=8")
+    print(f"fit: python scripts/fit.py {out} --eta {scale * estimate.eta:.3f}")
     return 0
 
 

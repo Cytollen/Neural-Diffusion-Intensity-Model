@@ -119,7 +119,7 @@ python3 scripts/prepare_usbank.py --csv /path/to/usbank_calls_byminute.csv
 ```
 
 ```bash
-python3 scripts/fit.py data/usbank_friday.npz --steps 240 --epochs 60 --eta 0.322 --set train.batch_size=8
+python3 scripts/fit.py data/usbank_friday.npz --eta 0.322
 ```
 
 Experiment 4, the bike trips. The first command fetches ten monthly files (about 37 MB) from Citi Bike (https://citibikenyc.com/system-data; the Citi Bike data licence applies).
