@@ -9,7 +9,7 @@ where we present a framework for learning the latent prior/posterior intensity d
 
 `dZ_t = b_theta(Z_t, t) dt + sigma(Z_t, t) dB_t`
 
-The package learns the prior drift `b_theta` together with an amortised posterior: the same SDE with an additional drift correction `sigma u_beta`, where the network `u_beta` takes the observed events as inputs. Both networks are trained simultaneously by maximizing the evidence lower-bound (ELBO).
+The package learns the prior drift `b_theta` together with an amortised posterior: the same SDE with an additional drift correction `sigma^2 s_beta`, where the network `s_beta` takes the observed events as inputs. Both networks are trained simultaneously by maximizing the evidence lower-bound (ELBO).
 
 ## What you can do with this code
 
